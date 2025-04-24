@@ -28,6 +28,16 @@ public class CustomerApiTests {
     }
 
     @Test
+    void whenGetCustomersInvalidAccept_thenNotAcceptable() {
+        given()
+                .accept(ContentType.XML)
+                .when()
+                .get("/customers")
+                .then()
+                .statusCode(406);
+    }
+
+    @Test
     void whenPostCustomers_thenCreated() {
         given()
                 .contentType(ContentType.JSON)
@@ -49,5 +59,92 @@ public class CustomerApiTests {
                 .body("state", is(equalTo("active")))
                 .body("uuid", is(notNullValue()))
                 .header("Location", is(notNullValue()));
+    }
+
+    @Test
+    void whenPostCustomersWithInvalidAccept_thenNotAcceptable() {
+        given()
+                .contentType(ContentType.JSON)
+                .body("""
+                            {
+                              "name": "Tom Mayer",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                        """)
+                .accept(ContentType.XML)
+                .when()
+                .post("/customers")
+                .then()
+                .statusCode(406);
+    }
+
+    @Test
+    void whenPostCustomersWithXmlBody_thenUnsupportedMediaType() {
+        given()
+                .contentType(ContentType.XML)
+                .body("""
+                            <test/>
+                        """)
+                .accept(ContentType.JSON)
+                .when()
+                .post("/customers")
+                .then()
+                .statusCode(415);
+    }
+
+    @Test
+    void whenPostCustomersWithUuid_thenBadRequest() {
+        given()
+                .contentType(ContentType.JSON)
+                .body("""
+                            {
+                              "uuid": "12345678-1234-1234-1234-123456789012",
+                              "name": "Tom Mayer",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                        """)
+                .accept(ContentType.JSON)
+                .when()
+                .post("/customers")
+                .then()
+                .statusCode(400);
+    }
+
+
+    @Test
+    void whenPostCustomers_thenGetCustomerByIdSuccessful() {
+        var response = given()
+                .contentType(ContentType.JSON)
+                .body("""
+                            {
+                              "name": "Tom Mayer",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                        """)
+                .accept(ContentType.JSON)
+                .when()
+                .post("/customers");
+        response
+                .then()
+                .statusCode(201)
+                .header("Location", is(notNullValue()));
+
+        var location = response.getHeader("Location");
+        var uuid = response.body().jsonPath().getString("uuid");
+
+        given()
+                .accept(ContentType.JSON)
+                .when()
+                .get(location)
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("name", is(equalTo("Tom Mayer")))
+                .body("birthdate", is(equalTo("2001-04-23")))
+                .body("state", is(equalTo("active")))
+                .body("uuid", is(equalTo(uuid)));
     }
 }
