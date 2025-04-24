@@ -3,6 +3,8 @@ package io.stein;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +95,58 @@ public class CustomerApiTests {
                 .statusCode(415);
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {
+            """
+                            {
+                              "uuid": "12345678-1234-1234-1234-123456789012",
+                              "name": "Tom Mayer",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                    """,
+            """
+                            {
+                              "name": "Tom Mayer",
+                              "birthdate": "2001-04-23",
+                              "state": "active",
+                              "gelbekatze": "test"
+                            }
+                    """,
+            """
+                            {
+                              "name": "Tom Mayer",
+                              "birthdate": "gelbekatze",
+                              "state": "active"
+                            }
+                    """,
+            """
+                            {
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                    """,
+            """
+                            {
+                              "name": "Tom Mayer",
+                              "state": "active"
+                            }
+                    """,
+            """
+                            {
+                              "name": "T",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                    """,
+            """
+                            {
+                              "name": "T0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+                              "birthdate": "2001-04-23",
+                              "state": "active"
+                            }
+                    """,
+    })
     void whenPostCustomersWithUuid_thenBadRequest() {
         given()
                 .contentType(ContentType.JSON)
@@ -146,5 +199,17 @@ public class CustomerApiTests {
                 .body("birthdate", is(equalTo("2001-04-23")))
                 .body("state", is(equalTo("active")))
                 .body("uuid", is(equalTo(uuid)));
+    }
+
+    @Test
+    void whenGetCustomerByIdForNonExisting_thenReturn404() {
+        var uuid = "12345678-1234-1234-1234-123456789012";
+
+        given()
+                .accept(ContentType.JSON)
+                .when()
+                .get("/customers/{uuid}", uuid)
+                .then()
+                .statusCode(404);
     }
 }

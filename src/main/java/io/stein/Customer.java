@@ -1,16 +1,24 @@
 package io.stein;
 
-import lombok.Data;
+import io.smallrye.common.constraint.NotNull;
+import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 public class Customer {
 
+    @Setter(onMethod_ = @JsonbTransient)
     private UUID uuid;
+    @NotNull
+    @Size(min = 3, max = 100)
     private String name;
+    @NotNull
     private LocalDate birthdate;
     private String state;
-
 }
