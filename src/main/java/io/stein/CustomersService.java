@@ -1,6 +1,7 @@
 package io.stein;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class CustomersService {
                 .ofNullable(this.customers.get(uuid));
     }
 
-    public void create(Customer customer) {
+    public void create(@Valid Customer customer) {
         customer.setUuid(UUID.randomUUID());
         this.customers.put(customer.getUuid(), customer);
     }
