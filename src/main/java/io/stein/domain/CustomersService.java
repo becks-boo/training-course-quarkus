@@ -1,9 +1,10 @@
-package io.stein;
+package io.stein.domain;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,15 +14,13 @@ import java.util.stream.Stream;
 @ApplicationScoped
 public class CustomersService {
 
+    @Inject
+    Event<Object> eventPublisher;
+
     private final Map<UUID, Customer> customers = new HashMap<>();
 
-    {
-        Customer customer = new Customer();
-        customer.setUuid(UUID.randomUUID());
-        customer.setName("Tom Mayer");
-        customer.setBirthdate(LocalDate.now().minusYears(30));
-        customer.setState("active");
-        customers.put(customer.getUuid(), customer);
+    public long count() {
+        return this.customers.size();
     }
 
     public Stream<Customer> findAll() {
@@ -38,5 +37,8 @@ public class CustomersService {
     public void create(@Valid Customer customer) {
         customer.setUuid(UUID.randomUUID());
         this.customers.put(customer.getUuid(), customer);
+        eventPublisher
+                .select(CustomerCreatedEvent.class)
+                .fire(new CustomerCreatedEvent(customer));
     }
 }

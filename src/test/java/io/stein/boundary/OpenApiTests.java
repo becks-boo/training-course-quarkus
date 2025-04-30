@@ -1,4 +1,4 @@
-package io.stein;
+package io.stein.boundary;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;

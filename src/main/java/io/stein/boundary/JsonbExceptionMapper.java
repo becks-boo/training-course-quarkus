@@ -1,4 +1,4 @@
-package io.stein;
+package io.stein.boundary;
 
 import jakarta.json.bind.JsonbException;
 import jakarta.ws.rs.core.Response;
