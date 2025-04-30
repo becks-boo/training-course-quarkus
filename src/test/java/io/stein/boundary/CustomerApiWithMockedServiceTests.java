@@ -1,8 +1,10 @@
-package io.stein;
+package io.stein.boundary;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import io.stein.domain.Customer;
+import io.stein.domain.CustomersService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -10,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -19,18 +22,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-public class CustomerApiWithMockedServiceTests {
+class CustomerApiWithMockedServiceTests {
 
     @InjectMock
     CustomersService customersService;
 
     @Test
     void whenGetCustomers_thenOk() {
-        var customer = new Customer();
-        customer.setUuid(UUID.randomUUID());
-        customer.setName("Tom Mayer");
-        customer.setBirthdate(LocalDate.of(2001, Month.APRIL, 23));
-        customer.setState("active");
+        var customer = new Customer()
+                .setUuid(UUID.randomUUID())
+                .setName("Tom Mayer")
+                .setBirthdate(LocalDate.of(2001, Month.APRIL, 23));
 
         when(customersService.findAll())
                 .thenReturn(Stream.of(customer));
@@ -83,5 +85,18 @@ public class CustomerApiWithMockedServiceTests {
                 .statusCode(400);
 
         verifyNoInteractions(customersService);
+    }
+
+    @Test
+    void whenGetCustomerByIdForNonExisting_thenReturn404() {
+        var uuid = UUID.randomUUID();
+        when(customersService.findById(uuid))
+                .thenReturn(Optional.empty());
+        given()
+                .accept(ContentType.JSON)
+                .when()
+                .get("/customers/{uuid}", uuid)
+                .then()
+                .statusCode(404);
     }
 }

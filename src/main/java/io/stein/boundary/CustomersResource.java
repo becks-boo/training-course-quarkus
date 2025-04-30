@@ -1,5 +1,6 @@
-package io.stein;
+package io.stein.boundary;
 
+import io.stein.domain.CustomersService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -19,27 +20,32 @@ public class CustomersResource {
 
     @Inject
     CustomersService customersService;
+    @Inject
+    CustomerDtoMapper mapper;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<Customer> getCustomers() {
+    public Collection<CustomerDto> getCustomers() {
         return this.customersService
                 .findAll()
+                .map(this.mapper::map)
                 .toList();
     }
 
     @GET
     @Path("/{uuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Customer getCustomerById(@PathParam("uuid") UUID uuid) {
+    public CustomerDto getCustomerById(@PathParam("uuid") UUID uuid) {
         return this.customersService
                 .findById(uuid)
+                .map(this.mapper::map)
                 .orElseThrow(NotFoundException::new);
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createCustomer(@Valid Customer customer) {
+    public Response createCustomer(@Valid CustomerDto customerDto) {
+        var customer = this.mapper.map(customerDto);
 
         this.customersService.create(customer);
 
@@ -48,7 +54,7 @@ public class CustomersResource {
                         .getAbsolutePathBuilder()
                         .path(customer.getUuid().toString())
                         .build())
-                .entity(customer)
+                .entity(mapper.map(customer))
                 .build();
     }
 }

@@ -1,4 +1,4 @@
-package io.stein;
+package io.stein.domain;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -15,10 +15,11 @@ class CustomersServiceTests {
     CustomersService customersService;
 
     @Test
-    void whenCreateInvalidCustomer_thenException() {
-        Customer customer = new Customer();
-        customer.setBirthdate(LocalDate.now().minusYears(20));
-        customer.setState("active");
-        assertThatThrownBy(() -> customersService.create(customer)).isNotNull();
+    void whenCreateInvalidCustomer_ThenException() {
+        Customer customer = new Customer()
+                .setBirthdate(LocalDate.now().minusYears(20));
+        assertThatThrownBy(() -> customersService.create(customer))
+                .isNotNull();
     }
+
 }

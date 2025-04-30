@@ -1,4 +1,4 @@
-package io.stein;
+package io.stein.boundary;
 
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class Customer {
+public class CustomerDto {
 
     @Setter(onMethod_ = @JsonbTransient)
     private UUID uuid;
